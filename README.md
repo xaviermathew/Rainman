@@ -1,5 +1,5 @@
 # Rainman
- Python implementation of Apache Spark
+ API cache backed by a DB
 
 ## Usage
 ### RDD
