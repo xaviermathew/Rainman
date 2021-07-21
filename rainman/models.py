@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import os
 
@@ -22,8 +23,8 @@ class Cache(Base):
     key = Column(Text, nullable=False, index=True)
     key_hash = Column(String, max_length=100, primary_key=True)
     value = Column(JSON, nullable=True)
-    created_on = Column(DateTime, nullable=False)
-    modified_on = Column(DateTime, nullable=False)
+    created_on = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    modified_on = Column(DateTime, nullable=False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
 
     @classmethod
     def get_fetcher_class(cls, prefix):
@@ -36,7 +37,7 @@ class Cache(Base):
     @classmethod
     def get_hash(cls, prefix, key):
         s = '%s-%s' % (prefix, key)
-        return hashlib.sha256(s).hexdigest()
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()
 
     def fetch(self):
         fetcher_class = self.fetcher_class
@@ -53,7 +54,7 @@ class Cache(Base):
         from rainman.utils import create_session
 
         fetcher_class = cls.get_fetcher_class(prefix)
-        key = fetcher_class.get_key(key_parts)
+        key = fetcher_class.get_key(*key_parts)
         key_hash = cls.get_hash(prefix, key)
         session = create_session()
         instance = session.query(cls).filter_by(key_hash=key_hash).one_or_none()

@@ -20,7 +20,7 @@ class BaseFetcher(object):
 
     @classmethod
     def split_key(cls, key):
-        parts = re.split(r'(?<!%s)%s' % (cls.ESCAPE_CHAR, cls.DELIMITER), key)
+        parts = re.split(r'(?<!\\)%s' % cls.DELIMITER, key)
         parts = [p.replace(cls.ESCAPE_CHAR + cls.DELIMITER, cls.DELIMITER) for p in parts]
         return parts
 
@@ -44,7 +44,3 @@ class BaseFetcher(object):
     @classmethod
     def from_python(cls, d):
         return d
-
-
-class GoogleFetcher(BaseFetcher):
-    pass
