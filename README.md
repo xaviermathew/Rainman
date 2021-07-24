@@ -40,4 +40,19 @@ querying google
 >>>
 >>> GoogleFetcher.get('rain man dustin hoffman')
 []
+>>> 
+>>> 
+>>> # Supports pagination too
+>>> from rainman import paginated_cache
+>>>
+>>> @paginated_cache()
+>>> def get_google_results(query, page=1):
+...     print('querying google')
+...     # do something and return a JSON encodeable obj
+...     data = []
+...     next_page = page + 1
+...     return data, next_page
+>>>
+>>>
+>>> get_google_results('rain man dustin hoffman')
 ```

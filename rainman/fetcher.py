@@ -17,7 +17,7 @@ class BaseFetcher(object):
 
     @classmethod
     def get_key(cls, *key_parts):
-        return cls.DELIMITER.join([s.replace(cls.DELIMITER, cls.ESCAPE_CHAR + cls.DELIMITER) for s in key_parts])
+        return cls.DELIMITER.join([str(s).replace(cls.DELIMITER, cls.ESCAPE_CHAR + cls.DELIMITER) for s in key_parts])
 
     @classmethod
     def split_key(cls, key):
@@ -26,8 +26,17 @@ class BaseFetcher(object):
         return parts
 
     @classmethod
+    def get_hash(cls, prefix, key):
+        s = '%s-%s' % (prefix, key)
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()
+
+    @classmethod
     def is_valid(cls, cache_obj):
         return True
+
+    @classmethod
+    def to_python(cls, d):
+        return d
 
     @classmethod
     def fetch(cls, *key_parts):
@@ -39,20 +48,7 @@ class BaseFetcher(object):
             yield key_parts, cls.fetch(*key_parts)
 
     @classmethod
-    def to_python(cls, d):
-        return d
-
-    @classmethod
-    def from_python(cls, d):
-        return d
-
-    @classmethod
-    def get_hash(cls, prefix, key):
-        s = '%s-%s' % (prefix, key)
-        return hashlib.sha256(s.encode('utf-8')).hexdigest()
-
-    @classmethod
-    def get(cls, *key_parts):
+    def _get(cls, *key_parts):
         from rainman.models import Cache
         from rainman.utils import create_session
 
@@ -62,9 +58,24 @@ class BaseFetcher(object):
         instance = session.query(Cache).filter_by(key_hash=key_hash).one_or_none()
         if instance:
             if cls.is_valid(instance):
-                return instance.to_python(cls)
+                return instance.value
             else:
                 return instance.fetch(cls, session)
         else:
             instance = Cache(prefix=cls.PREFIX, key=key, key_hash=key_hash)
             return instance.fetch(cls, session)
+
+    @classmethod
+    def get(cls, *key_parts):
+        value = cls._get(*key_parts)
+        return cls.to_python(value)
+
+    @classmethod
+    def paginated_get(cls, *key_parts):
+        next_page = -1
+        curr_key_parts = key_parts
+        while next_page == -1 or next_page is not None:
+            if next_page != -1 and next_page is not None:
+                curr_key_parts = list(key_parts) + [next_page]
+            curr_value, next_page = cls._get(*curr_key_parts)
+            yield from cls.to_python(curr_value)
