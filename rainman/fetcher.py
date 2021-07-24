@@ -1,3 +1,4 @@
+import hashlib
 import re
 
 from sqlalchemy.util import classproperty
@@ -44,3 +45,26 @@ class BaseFetcher(object):
     @classmethod
     def from_python(cls, d):
         return d
+
+    @classmethod
+    def get_hash(cls, prefix, key):
+        s = '%s-%s' % (prefix, key)
+        return hashlib.sha256(s.encode('utf-8')).hexdigest()
+
+    @classmethod
+    def get(cls, *key_parts):
+        from rainman.models import Cache
+        from rainman.utils import create_session
+
+        key = cls.get_key(*key_parts)
+        key_hash = cls.get_hash(cls.PREFIX, key)
+        session = create_session()
+        instance = session.query(Cache).filter_by(key_hash=key_hash).one_or_none()
+        if instance:
+            if cls.is_valid(instance):
+                return instance.to_python(cls)
+            else:
+                return instance.fetch(cls, session)
+        else:
+            instance = Cache(prefix=cls.PREFIX, key=key, key_hash=key_hash)
+            return instance.fetch(cls, session)
