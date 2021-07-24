@@ -49,6 +49,16 @@ class Cache(Base):
     def data(self):
         return self.fetcher_class.from_python(self.value)
 
+    def reload(self, session=None):
+        from rainman.utils import create_session
+
+        self.fetch()
+        if session is None:
+            session = create_session()
+        session.add(self)
+        session.commit()
+        return self.data
+
     @classmethod
     def get(cls, prefix, *key_parts):
         from rainman.utils import create_session
@@ -62,16 +72,10 @@ class Cache(Base):
             if fetcher_class.is_valid(instance):
                 return instance.data
             else:
-                instance.fetch()
-                session.add(instance)
-                session.commit()
-                return instance.data
+                return instance.reload(session)
         else:
             instance = cls(prefix=prefix, key=key, key_hash=key_hash)
-            instance.fetch()
-            session.add(instance)
-            session.commit()
-            return instance.data
+            return instance.reload(session)
 
 
 engine = create_engine(os.environ['RAINMAN_DATABASE_URL'], echo=True)
