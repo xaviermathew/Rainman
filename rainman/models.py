@@ -11,9 +11,9 @@ Base = declarative_base()
 class Cache(Base):
     __tablename__ = 'rainman_cache'
 
-    prefix = Column(String, max_length=50, nullable=False, index=True)
+    prefix = Column(String(50), nullable=False, index=True)
     key = Column(Text, nullable=False, index=True)
-    key_hash = Column(String, max_length=100, primary_key=True)
+    key_hash = Column(String(100), primary_key=True)
     value = Column(JSON, nullable=True)
     created_on = Column(DateTime, nullable=False, default=datetime.datetime.now)
     modified_on = Column(DateTime, nullable=False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
