@@ -1,7 +1,8 @@
 import datetime
 import os
 
-from sqlalchemy import Column, JSON, String, Text, DateTime, create_engine
+from sqlalchemy import Column, String, Text, DateTime, create_engine
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -14,7 +15,7 @@ class Cache(Base):
     prefix = Column(String(50), nullable=False, index=True)
     key = Column(Text, nullable=False, index=True)
     key_hash = Column(String(100), primary_key=True)
-    value = Column(JSON, nullable=True)
+    value = Column(JSONB, nullable=True)
     created_on = Column(DateTime, nullable=False, default=datetime.datetime.now)
     modified_on = Column(DateTime, nullable=False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
 
