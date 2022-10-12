@@ -1,5 +1,5 @@
 # Rainman
- API cache backed by a DB
+ A cache that never forgets (backed by a DB)
 
 ## Usage
 ### RDD
