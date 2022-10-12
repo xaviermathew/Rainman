@@ -2,7 +2,6 @@
  A cache that never forgets (backed by a DB)
 
 ## Usage
-### RDD
 ```python
 >>> # Define a DB
 >>> import os
